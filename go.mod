@@ -1,4 +1,4 @@
-module oauthwr25provider
+module github.com/orrche/oauthwr25provider
 
 go 1.14
 
