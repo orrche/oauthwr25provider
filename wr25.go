@@ -1,6 +1,6 @@
 // Package eveonline implements the OAuth2 protocol for authenticating users through eveonline.
 // This package can be used as a reference implementation of an OAuth2 provider for Goth.
-package wr25
+package oauthwr25provider
 
 import (
 	"bytes"

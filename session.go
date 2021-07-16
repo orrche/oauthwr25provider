@@ -1,4 +1,4 @@
-package wr25
+package oauthwr25provider
 
 import (
 	"encoding/json"
