@@ -1,4 +1,4 @@
-module wr25
+module oauthwr25provider
 
 go 1.14
 
