@@ -25,7 +25,7 @@ type UserData struct {
 	user goth.User
 }
 
-func GetUser(store sessions.CookieStore, r *http.Request) (UserData, error) {
+func GetUser(store *sessions.CookieStore, r *http.Request) (UserData, error) {
 	data := UserData{}
 	session, err := store.Get(r, "user")
 	if err != nil {
