@@ -41,10 +41,10 @@ func GetUser(store *sessions.CookieStore, r *http.Request) (UserData, error) {
 	return data, nil
 }
 
-func (ud *UserData) Groups() []string {
-	req, err := http.NewRequest("GET", "https://auth.wr25.org/oauth/verify", nil)
+func (ud *UserData) Groups() ([]string, error) {
+	req, err := http.NewRequest("GET", verifyPath, nil)
 	if err != nil {
-		return []string{}
+		return []string{}, err
 	}
 
 	req.Header.Add("Authorization", "Bearer "+ud.user.AccessToken)
@@ -54,18 +54,15 @@ func (ud *UserData) Groups() []string {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		fmt.Println("Unable to do the request")
-		return []string{}
+		return []string{}, fmt.Errorf("Unable to do teh request")
 	}
 	if resp.StatusCode == http.StatusUnauthorized {
-		fmt.Println("Not authorized, most likely the token has timed out ...")
-		return []string{}
+		return []string{}, fmt.Errorf("Not authorized, most likely the token has timed out ...")
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Couldn't read the body")
-		return []string{}
+		return []string{}, fmt.Errorf("Couldn't read the body")
 	}
 
 	defer resp.Body.Close()
@@ -77,12 +74,11 @@ func (ud *UserData) Groups() []string {
 	g := groups{}
 	err = json.Unmarshal(data, &g)
 	if err != nil {
-		fmt.Println("Couldn't unmarshal")
-		return []string{}
+		return []string{}, fmt.Errorf("Couldn't unmarshal response")
 	}
 	fmt.Println(string(data))
 	fmt.Println(g)
-	return g.Groups
+	return g.Groups, nil
 }
 
 // Provider is the implementation of `goth.Provider` for accessing eveonline.
