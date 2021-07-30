@@ -10,6 +10,7 @@ import (
 
 	"fmt"
 
+	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"golang.org/x/oauth2"
 )
@@ -19,6 +20,70 @@ const (
 	tokenPath  string = "https://auth.wr25.org/oauth/token"
 	verifyPath string = "https://auth.wr25.org/oauth/verify"
 )
+
+type UserData struct {
+	user goth.User
+}
+
+func GetUser(store sessions.CookieStore, r *http.Request) (UserData, error) {
+	data := UserData{}
+	session, err := store.Get(r, "user")
+	if err != nil {
+		return data, fmt.Errorf("No sessions found")
+	}
+
+	user, ok := session.Values["user"].(goth.User)
+	if !ok {
+		return data, fmt.Errorf("Session hasn't any user stored..")
+	}
+
+	data.user = user
+	return data, nil
+}
+
+func (ud *UserData) Groups() []string {
+	req, err := http.NewRequest("GET", "https://auth.wr25.org/oauth/verify", nil)
+	if err != nil {
+		return []string{}
+	}
+
+	req.Header.Add("Authorization", "Bearer "+ud.user.AccessToken)
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		fmt.Println("Unable to do the request")
+		return []string{}
+	}
+	if resp.StatusCode == http.StatusUnauthorized {
+		fmt.Println("Not authorized, most likely the token has timed out ...")
+		return []string{}
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Couldn't read the body")
+		return []string{}
+	}
+
+	defer resp.Body.Close()
+
+	type groups struct {
+		Groups []string `json:"groups"`
+	}
+
+	g := groups{}
+	err = json.Unmarshal(data, &g)
+	if err != nil {
+		fmt.Println("Couldn't unmarshal")
+		return []string{}
+	}
+	fmt.Println(string(data))
+	fmt.Println(g)
+	return g.Groups
+}
 
 // Provider is the implementation of `goth.Provider` for accessing eveonline.
 type Provider struct {
