@@ -41,6 +41,20 @@ func GetUser(store *sessions.CookieStore, r *http.Request) (UserData, error) {
 	return data, nil
 }
 
+func (ud *UserData) UserIn(group string) (bool, error) {
+	groups, err := ud.Groups()
+	if err != nil {
+		return false, err
+	}
+
+	for _, g := range groups {
+		if g == group {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (ud *UserData) Groups() ([]string, error) {
 	req, err := http.NewRequest("GET", verifyPath, nil)
 	if err != nil {
