@@ -90,8 +90,6 @@ func (ud *UserData) Groups() ([]string, error) {
 	if err != nil {
 		return []string{}, fmt.Errorf("Couldn't unmarshal response")
 	}
-	fmt.Println(string(data))
-	fmt.Println(g)
 	return g.Groups, nil
 }
 
